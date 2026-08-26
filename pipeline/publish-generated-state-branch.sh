@@ -432,19 +432,19 @@ snapshot_keep_paths_for_state() {
     printf '%s\n' "${ORDER_COMPONENT_DIRS[@]}" "ingress" "order-management-matcher" "postgres-database-replacement" ".github" "runtime"
     ;;
     010-kubernetes-runtime)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" ".github"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" ".github"
       ;;
     011-tilt-kubernetes-dev-loop)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github"
       ;;
     012-platform-convergence-c3)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github" "runtime"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github" "runtime"
       ;;
   013-radius-kubernetes-platform)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform" ".github"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "radius-kubernetes-platform" ".github"
       ;;
     014-fdc3-intent-interoperability)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability" ".github" "runtime"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability" ".github" "runtime"
       ;;
     *)
       echo "[fail] missing explicit snapshot keep-path policy for ${STATE_ID}"
@@ -547,8 +547,36 @@ assert_snapshot_size_guardrails() {
   fi
 }
 
+validate_snapshot_build_plan_contexts() {
+  local build_plan="${SNAPSHOT_DIR}/kubernetes-runtime/build-plan.json"
+  if [[ ! -f "${build_plan}" ]]; then
+    return 0
+  fi
+
+  local item name context_rel dockerfile_rel context_abs dockerfile_abs
+  while IFS= read -r item; do
+    name="$(jq -r '.name' <<<"${item}")"
+    context_rel="$(jq -r '.context' <<<"${item}")"
+    dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
+    context_abs="${SNAPSHOT_DIR}/${context_rel}"
+    dockerfile_abs="${context_abs}/${dockerfile_rel}"
+
+    [[ -d "${context_abs}" ]] || {
+      echo "[fail] kubernetes build plan references missing context for ${name}: ${context_rel}"
+      echo "[hint] update snapshot keep-path policy or build-plan context before publishing ${STATE_ID}"
+      exit 1
+    }
+    [[ -f "${dockerfile_abs}" ]] || {
+      echo "[fail] kubernetes build plan references missing dockerfile for ${name}: ${context_rel}/${dockerfile_rel}"
+      echo "[hint] update generated artifacts before publishing ${STATE_ID}"
+      exit 1
+    }
+  done < <(jq -c '.images[]? | select(has("context") and has("dockerfile"))' "${build_plan}")
+}
+
 remove_snapshot_transient_artifacts
 assert_snapshot_size_guardrails
+validate_snapshot_build_plan_contexts
 
 SOURCE_COMMIT="$(git -C "${ROOT}" rev-parse HEAD)"
 SOURCE_BRANCH="$(git -C "${ROOT}" branch --show-current)"
