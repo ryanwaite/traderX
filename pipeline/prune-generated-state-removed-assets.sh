@@ -25,6 +25,7 @@ const path = require('path');
 const root = process.argv[2];
 const stateId = process.argv[3];
 const specsRoot = path.join(root, 'specs');
+const catalogPath = path.join(root, 'catalog', 'state-catalog.json');
 
 const parseStateNum = (value) => {
   const match = String(value || '').match(/^(\d+)/);
@@ -32,10 +33,34 @@ const parseStateNum = (value) => {
   return Number.parseInt(match[1], 10);
 };
 
-const currentNum = parseStateNum(stateId);
-if (currentNum === null) {
-  process.exit(0);
+let catalog;
+try {
+  catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+} catch (error) {
+  console.error(`[fail] invalid state catalog JSON: ${catalogPath}`);
+  process.exit(2);
 }
+
+const states = Array.isArray(catalog.states) ? catalog.states : [];
+const stateById = new Map(states.map((state) => [state.id, state]));
+if (!stateById.has(stateId)) {
+  console.error(`[fail] state is missing from catalog: ${stateId}`);
+  process.exit(2);
+}
+
+const lineage = new Set();
+const visit = (id) => {
+  if (lineage.has(id)) return;
+  const state = stateById.get(id);
+  if (!state) {
+    console.error(`[fail] state lineage references unknown state: ${id}`);
+    process.exit(2);
+  }
+  lineage.add(id);
+  const parents = Array.isArray(state.previous) ? state.previous : [];
+  for (const parent of parents) visit(parent);
+};
+visit(stateId);
 
 const entries = fs.readdirSync(specsRoot, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
@@ -64,13 +89,12 @@ for (const specDir of entries) {
   }
 
   const manifestState = manifest.stateId || specDir;
-  const manifestNum = parseStateNum(manifestState);
-  if (manifestNum === null || manifestNum > currentNum) {
+  if (!lineage.has(manifestState)) {
     continue;
   }
 
   const appliesToDescendants = manifest.appliesToDescendants !== false;
-  if (!appliesToDescendants && manifestNum !== currentNum) {
+  if (!appliesToDescendants && manifestState !== stateId) {
     continue;
   }
 
