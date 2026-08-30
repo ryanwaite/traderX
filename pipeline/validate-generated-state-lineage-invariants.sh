@@ -166,6 +166,9 @@ allowed_roots_for_state() {
     014-fdc3-intent-interoperability)
       printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability"
       ;;
+    016-redis-database-cache)
+      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress" "postgres-database-replacement"
+      ;;
     *)
       return 1
       ;;
@@ -307,13 +310,14 @@ validate_state_entries() {
     exit 1
   fi
 
-  local state_num="${state_id%%-*}"
-  if [[ "${state_num}" =~ ^[0-9]+$ ]] && (( 10#${state_num} >= 6 )); then
-    if path_in_list "trade-feed" "${entries[@]}"; then
-      echo "[fail] decommission invariant violation: trade-feed must not reappear after state 006"
-      exit 1
-    fi
-  fi
+  case "${state_id}" in
+    006-*|007-*|008-*|009-*|010-*|011-*|012-*|013-*|014-*)
+      if path_in_list "trade-feed" "${entries[@]}"; then
+        echo "[fail] decommission invariant violation: trade-feed must not reappear in the state 006 lineage"
+        exit 1
+      fi
+      ;;
+  esac
 }
 
 validate_catalog_branches() {

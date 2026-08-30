@@ -25,6 +25,7 @@ This file is generated from `catalog/state-catalog.json`.
 
 - `005-postgres-database-replacement`
 - `006-messaging-nats-replacement`
+- `016-redis-database-cache`
 
 ### Functional
 
@@ -65,3 +66,4 @@ This file is generated from `catalog/state-catalog.json`.
 | `012-platform-convergence-c3` | 011-tilt-kubernetes-dev-loop | `C3` | `true` | `canonical` | `specs/012-platform-convergence-c3/spec.md` |
 | `013-radius-kubernetes-platform` | 012-platform-convergence-c3 | `none` | `false` | `optional` | `specs/013-radius-kubernetes-platform/spec.md` |
 | `014-fdc3-intent-interoperability` | 012-platform-convergence-c3 | `none` | `false` | `canonical` | `specs/014-fdc3-intent-interoperability/spec.md` |
+| `016-redis-database-cache` | 005-postgres-database-replacement | `none` | `false` | `canonical` | `specs/016-redis-database-cache/spec.md` |
