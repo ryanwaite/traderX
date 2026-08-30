@@ -4,10 +4,6 @@ import finos.traderx.accountservice.exceptions.ResourceNotFoundException;
 import finos.traderx.accountservice.model.Account;
 import finos.traderx.accountservice.repository.AccountRepository;
 import java.util.List;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,20 +15,15 @@ public class AccountService {
     this.accountRepository = accountRepository;
   }
 
-  @Cacheable("accounts")
   public List<Account> getAllAccount() {
     return accountRepository.findAll();
   }
 
-  @Cacheable(cacheNames = "accountById", key = "#id")
   public Account getAccountById(int id) {
     return accountRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Account with id " + id + " not found"));
   }
 
-  @Caching(
-      put = @CachePut(cacheNames = "accountById", key = "#result.id"),
-      evict = @CacheEvict(cacheNames = "accounts", allEntries = true))
   public Account upsertAccount(Account account) {
     return accountRepository.save(account);
   }

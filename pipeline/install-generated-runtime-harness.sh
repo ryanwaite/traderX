@@ -244,19 +244,10 @@ case "${STATE_ID}" in
     copy_script_if_exists "test-state-012-platform-convergence-c3.sh"
     copy_script_if_exists "test-state-014-fdc3-intent-interoperability.sh"
     ;;
-  016-redis-database-cache)
-    copy_script_if_exists "start-state-005-postgres-database-replacement-generated.sh"
-    copy_script_if_exists "stop-state-005-postgres-database-replacement-generated.sh"
-    copy_script_if_exists "status-state-005-postgres-database-replacement-generated.sh"
-    copy_script_if_exists "start-state-016-redis-database-cache-generated.sh"
-    copy_script_if_exists "stop-state-016-redis-database-cache-generated.sh"
-    copy_script_if_exists "status-state-016-redis-database-cache-generated.sh"
-    copy_script_if_exists "test-state-016-redis-database-cache.sh"
-    ;;
 esac
 
 case "${STATE_ID}" in
-  004-*|005-*|006-*|007-*|008-*|009-*|010-*|011-*|012-*|013-*|014-*|016-*)
+  004-*|005-*|006-*|007-*|008-*|009-*|010-*|011-*|012-*|013-*|014-*)
     gen_depth="${TRADERX_GENERATION_DEPTH:-0}"
     if (( gen_depth <= 2 )) || [[ "${TRADERX_RUNTIME_NORMALIZE_IN_NESTED_GENERATION:-0}" == "1" ]]; then
       normalize_containerized_compose_cors_origins

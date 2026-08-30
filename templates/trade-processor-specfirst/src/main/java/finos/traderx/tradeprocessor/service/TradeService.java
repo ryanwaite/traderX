@@ -14,8 +14,6 @@ import java.util.Date;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,12 +38,6 @@ public class TradeService {
   }
 
   @Transactional
-  @Caching(evict = {
-      @CacheEvict(cacheNames = "positions", allEntries = true),
-      @CacheEvict(cacheNames = "positionsByAccount", key = "#order.accountId"),
-      @CacheEvict(cacheNames = "trades", allEntries = true),
-      @CacheEvict(cacheNames = "tradesByAccount", key = "#order.accountId")
-  })
   public TradeBookingResult processTrade(TradeOrder order) {
     log.info("Trade order received: {}", order);
 
