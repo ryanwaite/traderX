@@ -27,7 +27,6 @@ tracks:
     states:
       - 005-postgres-database-replacement
       - 006-messaging-nats-replacement
-      - 016-redis-database-cache
   functional:
     description: "Functional capability expansion states."
     states:
@@ -148,10 +147,3 @@ stateCatalog:
     isConvergence: false
     lineageRole: canonical
     spec: specs/014-fdc3-intent-interoperability/spec.md
-  - id: 016-redis-database-cache
-    previous:
-      - 005-postgres-database-replacement
-    convergenceLevel: none
-    isConvergence: false
-    lineageRole: canonical
-    spec: specs/016-redis-database-cache/spec.md

@@ -110,16 +110,6 @@ INSERT INTO positions (accountid, security, updated, quantity) VALUES (52355, 'B
   }
 }
 
-resource redisCache 'Radius.Data/redisCaches@2025-08-01-preview' = {
-  name: 'redis-cache'
-  properties: {
-    environment: environment
-    application: traderxApp.id
-    codeReference: 'specs/016-redis-database-cache/system/architecture.model.json#L46'
-    size: 'S'
-  }
-}
-
 resource registryCreds 'Radius.Security/secrets@2025-08-01-preview' = {
   name: 'radius-ghcr-registry-creds'
   properties: {
@@ -142,11 +132,11 @@ resource accountServiceImage 'Radius.Compute/containerImages@2025-08-01-preview'
   properties: {
     environment: environment
     application: traderxApp.id
-    codeReference: 'specs/016-redis-database-cache/generation/dockerfiles/account-service.Dockerfile#L1'
-    tag: '3b2f230ac244'
+    codeReference: 'templates/account-service-specfirst/Dockerfile#L1'
+    tag: '5d6415e7b401'
     build: {
-      source: 'git::https://github.com/ryanwaite/traderX.git?ref=3b2f230ac2444813f46ae1ab0d139894e3d78b33'
-      dockerfile: 'specs/016-redis-database-cache/generation/dockerfiles/account-service.Dockerfile'
+      source: 'git::https://github.com/ryanwaite/traderX.git//account-service?ref=5d6415e7b4011948e2b0e624c8df8218482adc37'
+      dockerfile: 'Dockerfile.compose'
       platforms: [
         'linux/amd64'
       ]
@@ -202,11 +192,11 @@ resource positionServiceImage 'Radius.Compute/containerImages@2025-08-01-preview
   properties: {
     environment: environment
     application: traderxApp.id
-    codeReference: 'specs/016-redis-database-cache/generation/dockerfiles/position-service.Dockerfile#L1'
-    tag: '3b2f230ac244'
+    codeReference: 'templates/position-service-specfirst/Dockerfile#L1'
+    tag: '5d6415e7b401'
     build: {
-      source: 'git::https://github.com/ryanwaite/traderX.git?ref=3b2f230ac2444813f46ae1ab0d139894e3d78b33'
-      dockerfile: 'specs/016-redis-database-cache/generation/dockerfiles/position-service.Dockerfile'
+      source: 'git::https://github.com/ryanwaite/traderX.git//position-service?ref=5d6415e7b4011948e2b0e624c8df8218482adc37'
+      dockerfile: 'Dockerfile.compose'
       platforms: [
         'linux/amd64'
       ]
@@ -262,11 +252,11 @@ resource tradeProcessorImage 'Radius.Compute/containerImages@2025-08-01-preview'
   properties: {
     environment: environment
     application: traderxApp.id
-    codeReference: 'specs/016-redis-database-cache/generation/dockerfiles/trade-processor.Dockerfile#L1'
-    tag: '3b2f230ac244'
+    codeReference: 'templates/trade-processor-specfirst/Dockerfile#L1'
+    tag: '5d6415e7b401'
     build: {
-      source: 'git::https://github.com/ryanwaite/traderX.git?ref=3b2f230ac2444813f46ae1ab0d139894e3d78b33'
-      dockerfile: 'specs/016-redis-database-cache/generation/dockerfiles/trade-processor.Dockerfile'
+      source: 'git::https://github.com/ryanwaite/traderX.git//trade-processor?ref=5d6415e7b4011948e2b0e624c8df8218482adc37'
+      dockerfile: 'Dockerfile.compose'
       platforms: [
         'linux/amd64'
       ]
@@ -322,7 +312,7 @@ resource peopleServiceContainer 'Radius.Compute/containers@2025-08-01-preview' =
   properties: {
     environment: environment
     application: traderxApp.id
-    codeReference: 'templates/people-service-specfirst/PeopleService.WebApi/Program.cs#L1'
+    codeReference: 'specs/004-containerized-compose-runtime/system/docker-compose.spec.yaml#L43'
     containers: {
       peopleService: {
         image: peopleServiceImage.properties.imageReference
@@ -357,12 +347,6 @@ resource accountServiceContainer 'Radius.Compute/containers@2025-08-01-preview' 
           ACCOUNT_SERVICE_PORT: {
             value: '18088'
           }
-          CACHE_ENABLED: {
-            value: 'true'
-          }
-          CACHE_TTL: {
-            value: '30s'
-          }
           CORS_ALLOWED_ORIGINS: {
             value: '*'
           }
@@ -384,23 +368,6 @@ resource accountServiceContainer 'Radius.Compute/containers@2025-08-01-preview' 
           PEOPLE_SERVICE_URL: {
             value: 'http://${any(peopleServiceContainer.properties).hosts.peopleService}:18089'
           }
-          REDIS_HOST: {
-            value: redisCache.properties.host
-          }
-          REDIS_PASSWORD: {
-            valueFrom: {
-              secretKeyRef: {
-                secretName: redisCache.properties.secrets.name
-                key: 'accessKey'
-              }
-            }
-          }
-          REDIS_PORT: {
-            value: string(redisCache.properties.port)
-          }
-          REDIS_SSL: {
-            value: 'true'
-          }
         }
         ports: {
           web: {
@@ -412,10 +379,6 @@ resource accountServiceContainer 'Radius.Compute/containers@2025-08-01-preview' 
     connections: {
       postgresdb: {
         source: postgresDb.id
-        disableDefaultEnvVars: true
-      }
-      redis: {
-        source: redisCache.id
         disableDefaultEnvVars: true
       }
     }
@@ -432,12 +395,6 @@ resource positionServiceContainer 'Radius.Compute/containers@2025-08-01-preview'
       positionService: {
         image: positionServiceImage.properties.imageReference
         env: {
-          CACHE_ENABLED: {
-            value: 'true'
-          }
-          CACHE_TTL: {
-            value: '30s'
-          }
           CORS_ALLOWED_ORIGINS: {
             value: '*'
           }
@@ -459,23 +416,6 @@ resource positionServiceContainer 'Radius.Compute/containers@2025-08-01-preview'
           POSITION_SERVICE_PORT: {
             value: '18090'
           }
-          REDIS_HOST: {
-            value: redisCache.properties.host
-          }
-          REDIS_PASSWORD: {
-            valueFrom: {
-              secretKeyRef: {
-                secretName: redisCache.properties.secrets.name
-                key: 'accessKey'
-              }
-            }
-          }
-          REDIS_PORT: {
-            value: string(redisCache.properties.port)
-          }
-          REDIS_SSL: {
-            value: 'true'
-          }
         }
         ports: {
           web: {
@@ -489,10 +429,6 @@ resource positionServiceContainer 'Radius.Compute/containers@2025-08-01-preview'
         source: postgresDb.id
         disableDefaultEnvVars: true
       }
-      redis: {
-        source: redisCache.id
-        disableDefaultEnvVars: true
-      }
     }
   }
 }
@@ -502,7 +438,7 @@ resource referenceDataContainer 'Radius.Compute/containers@2025-08-01-preview' =
   properties: {
     environment: environment
     application: traderxApp.id
-    codeReference: 'templates/reference-data-specfirst/src/main.ts#L1'
+    codeReference: 'specs/004-containerized-compose-runtime/system/docker-compose.spec.yaml#L19'
     containers: {
       referenceData: {
         image: referenceDataImage.properties.imageReference
@@ -529,7 +465,7 @@ resource tradeFeedContainer 'Radius.Compute/containers@2025-08-01-preview' = {
   properties: {
     environment: environment
     application: traderxApp.id
-    codeReference: 'templates/trade-feed-specfirst/index.js#L1'
+    codeReference: 'specs/004-containerized-compose-runtime/system/docker-compose.spec.yaml#L32'
     containers: {
       tradeFeed: {
         image: tradeFeedImage.properties.imageReference
@@ -561,12 +497,6 @@ resource tradeProcessorContainer 'Radius.Compute/containers@2025-08-01-preview' 
       tradeProcessor: {
         image: tradeProcessorImage.properties.imageReference
         env: {
-          CACHE_ENABLED: {
-            value: 'true'
-          }
-          CACHE_TTL: {
-            value: '30s'
-          }
           CORS_ALLOWED_ORIGINS: {
             value: '*'
           }
@@ -585,23 +515,6 @@ resource tradeProcessorContainer 'Radius.Compute/containers@2025-08-01-preview' 
           DATABASE_PG_PORT: {
             value: postgresDb.properties.port
           }
-          REDIS_HOST: {
-            value: redisCache.properties.host
-          }
-          REDIS_PASSWORD: {
-            valueFrom: {
-              secretKeyRef: {
-                secretName: redisCache.properties.secrets.name
-                key: 'accessKey'
-              }
-            }
-          }
-          REDIS_PORT: {
-            value: string(redisCache.properties.port)
-          }
-          REDIS_SSL: {
-            value: 'true'
-          }
           TRADE_FEED_ADDRESS: {
             value: 'http://${any(tradeFeedContainer.properties).hosts.tradeFeed}:18086'
           }
@@ -619,10 +532,6 @@ resource tradeProcessorContainer 'Radius.Compute/containers@2025-08-01-preview' 
     connections: {
       postgresdb: {
         source: postgresDb.id
-        disableDefaultEnvVars: true
-      }
-      redis: {
-        source: redisCache.id
         disableDefaultEnvVars: true
       }
     }
@@ -673,7 +582,7 @@ resource webFrontEndContainer 'Radius.Compute/containers@2025-08-01-preview' = {
   properties: {
     environment: environment
     application: traderxApp.id
-    codeReference: 'templates/web-front-end/angular/main/main.ts#L1'
+    codeReference: 'templates/web-front-end/angular/Dockerfile.prod#L1'
     containers: {
       webFrontEnd: {
         image: webFrontEndImage.properties.imageReference
@@ -697,7 +606,7 @@ resource ingressContainer 'Radius.Compute/containers@2025-08-01-preview' = {
   properties: {
     environment: environment
     application: traderxApp.id
-    codeReference: 'specs/004-containerized-compose-runtime/system/ingress-nginx.conf.template#L1'
+    codeReference: 'specs/004-containerized-compose-runtime/system/docker-compose.spec.yaml#L141'
     containers: {
       ingress: {
         image: ingressImage.properties.imageReference

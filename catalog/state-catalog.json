@@ -395,29 +395,6 @@
         "branch": "code/generated-state-014-fdc3-intent-interoperability",
         "tag": "generated/014-fdc3-intent-interoperability/v1"
       }
-    },
-    {
-      "id": "016-redis-database-cache",
-      "title": "Redis Database Cache",
-      "status": "implemented",
-      "track": "architecture",
-      "convergenceLevel": "none",
-      "isConvergence": false,
-      "dottedParents": [],
-      "primaryLineageRole": "canonical",
-      "featurePack": "specs/016-redis-database-cache",
-      "previous": [
-        "005-postgres-database-replacement"
-      ],
-      "generation": {
-        "mode": "implemented",
-        "entrypoint": "bash pipeline/generate-state.sh 016-redis-database-cache",
-        "runtime": "./scripts/start-state-016-redis-database-cache-generated.sh"
-      },
-      "publish": {
-        "branch": "code/generated-state-016-redis-database-cache",
-        "tag": "generated/016-redis-database-cache/v1"
-      }
     }
   ]
 }

@@ -8,7 +8,7 @@ title: "State 005: PostgreSQL Database Replacement"
 
 - Previous state(s): [004-containerized-compose-runtime](/docs/learning/state-004-containerized-compose-runtime)
 - Dotted-line parent(s): none
-- Next state(s): [006-messaging-nats-replacement](/docs/learning/state-006-messaging-nats-replacement), [016-redis-database-cache](/docs/learning/state-016-redis-database-cache)
+- Next state(s): [006-messaging-nats-replacement](/docs/learning/state-006-messaging-nats-replacement)
 
 ## Convergence Metadata
 
